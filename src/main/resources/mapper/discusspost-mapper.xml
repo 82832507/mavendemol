@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ys.community.dao.DiscussPostMapper">
+    <sql id="selectFields">
+        id,user_id,title,content,type,status,create_time,comment_count,score
+    </sql>
+<!--返回值类型不是基本数据类型，需要提前声明
+List<DiscussPost>其中List可以被检测到
+只需声明DiscussPost即可-->
+    <select id="selectDiscussPosts" resultType="DiscussPost">
+        select <include refid="selectFields"></include>
+        from discuss_post
+<!-- 查询帖子的数量时，拉黑的帖子查询不到-->
+        where status!=2
+-- 首页中显示的是全部用户的帖子，不用传入userId
+-- 当显示某人的帖子时，才需传入userId
+-- 需动态的拼接userId条件，用if标签,test属性写上条件
+    <if test="userId!=0">
+        and user_id=#{userId}
+    </if>
+-- type帖子的类型 0普通帖子；1置顶帖子
+-- 在帖子类型一致的情况下，按照发布的时间排序
+    order by type desc,create_time desc
+-- 分页在Orcle中用limit
+    limit #{offset},#{limit}
+    </select>
+
+    <select id="selectDiscussPostRows" resultType="int">
+-- 查询帖子数量
+     select count(id)
+     from discuss_post
+     where status!=2
+     <if test="userId!=0">
+         and user_id=#{userId}
+     </if>
+    </select>
+</mapper>
